@@ -2,6 +2,7 @@ import cv2
 import math
 import numpy as np
 from PIL import Image
+import sys
 
 from image_data_generator import ImageDataGenerator
 
@@ -61,8 +62,11 @@ def plotTrainAndGtBatchPatches(
 
 
 def main():
-    train_data_path = "../REDS/train_blur"
-    ground_truth_data_path = "../REDS/train_sharp"
+    if len(sys.argv) <= 1:
+        print("Give train data path as argument")
+        return
+
+    train_data_path = sys.argv[1]
     batch_size = 8
     patch_size = 256
     patches_per_image = 2
@@ -70,14 +74,18 @@ def main():
     # Plot batches on one dataset (for example test)
     plotBatchImages(train_data_path, batch_size)
 
-    # Plot train and ground truth image pairs
-    plotTrainAndGtBatchImages(
-        train_data_path, ground_truth_data_path, batch_size)
+    if len(sys.argv) == 3:
+        # Plot train and ground truth image pairs
+        ground_truth_data_path = sys.argv[2]
+        plotTrainAndGtBatchImages(
+            train_data_path, ground_truth_data_path, batch_size)
 
-    # Plot train and ground truth patch pairs
-    plotTrainAndGtBatchPatches(
-        train_data_path, ground_truth_data_path, batch_size, patches_per_image,
-        patch_size)
+        # Plot train and ground truth patch pairs
+        plotTrainAndGtBatchPatches(
+            train_data_path, ground_truth_data_path, batch_size,
+            patches_per_image, patch_size)
+    else:
+        print("No ground truth data path given as argument")
 
 
 main()
