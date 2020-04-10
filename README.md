@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Keras image batch generator to work with image to image models. The generator is returns batches of train and ground truth image pairs.
+Keras image batch generator to work with image to image models. The generator returns batches of train and ground truth image pairs.
 
 ## Installation and data set structure
 
