@@ -1,8 +1,16 @@
-# Keras batch generator and filenames
+# Keras image batch generator
 
 ## Introduction
 
-Keras image batch generator to work with image to image models. The generator is returns batches of train and ground truth image pairs. The train and ground truth data sets must have same file names and be in a following folder structure:
+Keras image batch generator to work with image to image models. The generator is returns batches of train and ground truth image pairs.
+
+## Installation and data set structure
+
+```bash
+pip install -r requirements.txt
+```
+
+The train and ground truth data sets must have same file names and following folder structure:
 
 ```bash
 data_folder/
@@ -35,12 +43,6 @@ data_folder/
         image_m_n.png
 ```
 
-## Installation
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Run batch visualization
 
 1. Add data to the folders as described above.
@@ -51,4 +53,4 @@ pip install -r requirements.txt
 python test_generator.py path/to/train_data path/to/ground_truth_data
 ```
 
-**Note**: ground truth data set path is not necessary
+**Note**: If ground truth data set path is not given, batches will only be shown for train data set.
