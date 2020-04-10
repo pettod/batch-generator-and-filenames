@@ -1,5 +1,6 @@
 import cv2
 from keras.preprocessing.image import ImageDataGenerator as kerasImageGenerator
+import math
 import numpy as np
 import os
 from PIL import Image
@@ -140,7 +141,8 @@ class ImageDataGenerator:
         self.number_of_patches_per_image = number_of_random_patches_per_image
         self.patch_size = patch_size
 
-        number_of_taken_images = self.batch_size  #math.ceil(batch_size / SAMPLES_PER_IMAGE)
+        number_of_taken_images = math.ceil(
+            self.batch_size / self.number_of_patches_per_image)
         batch_generator = self.batchGeneratorAndPaths(
             self.train_directory, number_of_taken_images)
 
@@ -204,10 +206,38 @@ def plotTrainAndGtBatchImages(train_data_path, gt_data_path, batch_size):
         cv2.destroyAllWindows()
 
 
+def plotTrainAndGtBatchPatches(
+        train_data_path, gt_data_path, batch_size, patches_per_image,
+        patch_size):
+    data_generator = ImageDataGenerator().trainAndGtBatchGenerator(
+        train_data_path, gt_data_path, batch_size, patches_per_image,
+        patch_size)
+    for i in range(5):
+        train_batch, gt_batch = next(data_generator)
+        print("Batch {}".format(i+1))
+        concat_train = hconcatArray(train_batch, 2)
+        concat_gt = hconcatArray(gt_batch, 2)
+        concat_image = cv2.vconcat([concat_train, concat_gt])
+        cv2.imshow(str(i+1), concat_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
 if __name__ == "__main__":
     train_data_path = "../REDS/train_blur"
     ground_truth_data_path = "../REDS/train_sharp"
     batch_size = 8
+    patch_size = 256
+    patches_per_image = 2
+
+    # Plot batches on one dataset (for example test)
     plotBatchImages(train_data_path, batch_size)
+
+    # Plot train and ground truth image pairs
     plotTrainAndGtBatchImages(
         train_data_path, ground_truth_data_path, batch_size)
+
+    # Plot train and ground truth patch pairs
+    plotTrainAndGtBatchPatches(
+        train_data_path, ground_truth_data_path, batch_size, patches_per_image,
+        patch_size)
