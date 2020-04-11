@@ -8,11 +8,41 @@ import random
 
 class ImageDataGenerator:
     def __init__(self):
-        self.train_directory = ""
-        self.gt_directory = ""
-        self.batch_size = 0
-        self.number_of_patches_per_image = 0
-        self.patch_size = None
+        self.__train_directory = ""
+        self.__gt_directory = ""
+        self.__batch_size = 0
+        self.__number_of_patches_per_image = 0
+        self.__patch_size = None
+
+    def __loadCorrespondingGtImages(self, train_batch_paths):
+        gt_batch = []
+        for train_image_path in train_batch_paths:
+            ground_truth_image_path = "{}{}".format(
+                self.__gt_directory,
+                train_image_path.split(self.__train_directory)[-1])
+            gt_batch.append(np.array(
+                Image.open(ground_truth_image_path), dtype=np.float32))
+        return np.array(gt_batch)
+
+    def __pickRandomTrainGtPatches(self, train_batch, gt_batch):
+        # Define max coordinates for image cropping
+        max_x_coordinate = train_batch.shape[2] - self.__patch_size
+        max_y_coordinate = train_batch.shape[1] - self.__patch_size
+
+        # Take random patches from images
+        train_patches = []
+        gt_patches = []
+        for i in range(train_batch.shape[0]):
+            for j in range(self.__number_of_patches_per_image):
+                x_start = random.randint(0, max_x_coordinate)
+                x_end = x_start + self.__patch_size
+                y_start = random.randint(0, max_y_coordinate)
+                y_end = y_start + self.__patch_size
+                train_patches.append(
+                    train_batch[i, y_start:y_end, x_start:x_end])
+                gt_patches.append(gt_batch[i, y_start:y_end, x_start:x_end])
+
+        return np.array(train_patches), np.array(gt_patches)
 
     def batchGeneratorAndPaths(
             self, data_directory, batch_size=16, image_size=None):
@@ -36,7 +66,7 @@ class ImageDataGenerator:
         Yield tuple of numpy array of batch images and list of batch image file
         name paths
         """
-        self.batch_size = batch_size
+        self.__batch_size = batch_size
 
         # Define image size to be original image size if not given resize
         # dimensions
@@ -49,7 +79,7 @@ class ImageDataGenerator:
         # Define generator
         datagen = kerasImageGenerator().flow_from_directory(
             data_directory, target_size=image_size, class_mode=None,
-            shuffle=True, batch_size=self.batch_size)
+            shuffle=True, batch_size=self.__batch_size)
         batches_per_epoch = (
             datagen.samples // datagen.batch_size +
             (datagen.samples % datagen.batch_size > 0))
@@ -72,36 +102,6 @@ class ImageDataGenerator:
             batch_image_paths = [datagen.filepaths[idx] for idx in index_array]
 
             yield batch_images, batch_image_paths
-
-    def __loadCorrespondingGtImages__(self, train_batch_paths):
-        gt_batch = []
-        for train_image_path in train_batch_paths:
-            ground_truth_image_path = "{}{}".format(
-                self.gt_directory,
-                train_image_path.split(self.train_directory)[-1])
-            gt_batch.append(np.array(
-                Image.open(ground_truth_image_path), dtype=np.float32))
-        return np.array(gt_batch)
-
-    def __pickRandomTrainGtPatches__(self, train_batch, gt_batch):
-        # Define max coordinates for image cropping
-        max_x_coordinate = train_batch.shape[2] - self.patch_size
-        max_y_coordinate = train_batch.shape[1] - self.patch_size
-
-        # Take random patches from images
-        train_patches = []
-        gt_patches = []
-        for i in range(train_batch.shape[0]):
-            for j in range(self.number_of_patches_per_image):
-                x_start = random.randint(0, max_x_coordinate)
-                x_end = x_start + self.patch_size
-                y_start = random.randint(0, max_y_coordinate)
-                y_end = y_start + self.patch_size
-                train_patches.append(
-                    train_batch[i, y_start:y_end, x_start:x_end])
-                gt_patches.append(gt_batch[i, y_start:y_end, x_start:x_end])
-
-        return np.array(train_patches), np.array(gt_patches)
 
     def trainAndGtBatchGenerator(
             self, train_directory, ground_truth_directory, batch_size,
@@ -134,26 +134,26 @@ class ImageDataGenerator:
         Generator of (train_images, ground_truth_images) pair
         """
         # Set member variables
-        self.train_directory = train_directory
-        self.gt_directory = ground_truth_directory
-        self.batch_size = batch_size
-        self.number_of_patches_per_image = number_of_random_patches_per_image
-        self.patch_size = patch_size
+        self.__train_directory = train_directory
+        self.__gt_directory = ground_truth_directory
+        self.__batch_size = batch_size
+        self.__number_of_patches_per_image = number_of_random_patches_per_image
+        self.__patch_size = patch_size
 
-        number_of_taken_images = self.batch_size
+        number_of_taken_images = self.__batch_size
         if number_of_random_patches_per_image > 0 and patch_size is not None:
             number_of_taken_images = math.ceil(
-                self.batch_size / self.number_of_patches_per_image)
+                self.__batch_size / self.__number_of_patches_per_image)
         batch_generator = self.batchGeneratorAndPaths(
-            self.train_directory, number_of_taken_images)
+            self.__train_directory, number_of_taken_images)
 
         # Take respective ground truth images
         while True:
             train_batch, train_image_paths = next(batch_generator)
-            gt_batch = self.__loadCorrespondingGtImages__(train_image_paths)
-            if self.patch_size is not None and \
-                    self.number_of_patches_per_image > 0:
-                train_batch, gt_batch = self.__pickRandomTrainGtPatches__(
+            gt_batch = self.__loadCorrespondingGtImages(train_image_paths)
+            if self.__patch_size is not None and \
+                    self.__number_of_patches_per_image > 0:
+                train_batch, gt_batch = self.__pickRandomTrainGtPatches(
                     train_batch, gt_batch)
             if normalize:
                 train_batch = self.normalizeArray(train_batch)
@@ -163,7 +163,7 @@ class ImageDataGenerator:
     def normalizeArray(self, data_array, max_value=255):
         return (data_array / max_value - 0.5) * 2
 
-    def unnormalizeArray(self, data_array, max_value=255):
+    def denormalizeArray(self, data_array, max_value=255):
         data_array = (data_array / 2 + 0.5) * max_value
         data_array[data_array < 0.0] = 0.0
         data_array[data_array > max_value] = max_value
