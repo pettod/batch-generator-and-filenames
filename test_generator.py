@@ -15,11 +15,10 @@ def hconcatArray(data_array, resize_factor=1):
     return cv2.resize(image_concatenated, new_shape)
 
 
-def plotBatchImages(data_path, batch_size):
+def plotBatchImages(data_path, batch_size, max_number_of_batch_iterations=4):
     data_generator = ImageDataGenerator().batchGeneratorAndPaths(
         data_path, batch_size)
-    for i in range(5):
-        batch_images, image_names = next(data_generator)
+    for i, (batch_images, image_names) in enumerate(data_generator):
         print("------Batch {}------".format(i+1))
         for j in range(len(image_names)):
             print(image_names[j])
@@ -28,13 +27,16 @@ def plotBatchImages(data_path, batch_size):
         cv2.imshow(str(i+1), concat_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        if i >= max_number_of_batch_iterations:
+            break
 
 
-def plotTrainAndGtBatchImages(train_data_path, gt_data_path, batch_size):
+def plotTrainAndGtBatchImages(
+        train_data_path, gt_data_path, batch_size,
+        max_number_of_batch_iterations=4):
     data_generator = ImageDataGenerator().trainAndGtBatchGenerator(
         train_data_path, gt_data_path, batch_size)
-    for i in range(5):
-        train_batch, gt_batch = next(data_generator)
+    for i, train_batch, gt_batch in enumerate(data_generator):
         print("Batch {}".format(i+1))
         concat_train = hconcatArray(train_batch, 8)
         concat_gt = hconcatArray(gt_batch, 8)
@@ -42,16 +44,17 @@ def plotTrainAndGtBatchImages(train_data_path, gt_data_path, batch_size):
         cv2.imshow(str(i+1), concat_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        if i >= max_number_of_batch_iterations:
+            break
 
 
 def plotTrainAndGtBatchPatches(
         train_data_path, gt_data_path, batch_size, patches_per_image,
-        patch_size):
+        patch_size, max_number_of_batch_iterations=4):
     data_generator = ImageDataGenerator().trainAndGtBatchGenerator(
         train_data_path, gt_data_path, batch_size, patches_per_image,
         patch_size)
-    for i in range(5):
-        train_batch, gt_batch = next(data_generator)
+    for i, train_batch, gt_batch in enumerate(data_generator):
         print("Batch {}".format(i+1))
         concat_train = hconcatArray(train_batch, 2)
         concat_gt = hconcatArray(gt_batch, 2)
@@ -59,6 +62,8 @@ def plotTrainAndGtBatchPatches(
         cv2.imshow(str(i+1), concat_image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        if i >= max_number_of_batch_iterations:
+            break
 
 
 def main():
