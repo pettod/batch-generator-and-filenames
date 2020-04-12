@@ -36,7 +36,7 @@ def plotTrainAndGtBatchImages(
         max_number_of_batch_iterations=4):
     data_generator = ImageDataGenerator().trainAndGtBatchGenerator(
         train_data_path, gt_data_path, batch_size)
-    for i, train_batch, gt_batch in enumerate(data_generator):
+    for i, (train_batch, gt_batch) in enumerate(data_generator):
         print("Batch {}".format(i+1))
         concat_train = hconcatArray(train_batch, 8)
         concat_gt = hconcatArray(gt_batch, 8)
@@ -54,7 +54,7 @@ def plotTrainAndGtBatchPatches(
     data_generator = ImageDataGenerator().trainAndGtBatchGenerator(
         train_data_path, gt_data_path, batch_size, patches_per_image,
         patch_size)
-    for i, train_batch, gt_batch in enumerate(data_generator):
+    for i, (train_batch, gt_batch) in enumerate(data_generator):
         print("Batch {}".format(i+1))
         concat_train = hconcatArray(train_batch, 2)
         concat_gt = hconcatArray(gt_batch, 2)
@@ -76,7 +76,7 @@ def main():
     patch_size = 256
     patches_per_image = 2
 
-    # Plot batches on one dataset (for example test)
+    # Plot batches and print batch file names on one dataset
     plotBatchImages(train_data_path, batch_size)
 
     if len(sys.argv) == 3:
