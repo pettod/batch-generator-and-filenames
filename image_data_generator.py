@@ -9,10 +9,10 @@ import random
 
 class ImageDataGenerator:
     def __init__(self):
-        self.__train_directory = ""
-        self.__gt_directory = ""
-        self.__number_of_images_per_batch = 0
-        self.__number_of_patches_per_image = 0
+        self.__train_directory = None
+        self.__gt_directory = None
+        self.__number_of_images_per_batch = None
+        self.__number_of_patches_per_image = None
         self.__patch_size = None
 
     def __loadCorrespondingGtImages(self, train_batch_paths):
@@ -109,7 +109,7 @@ class ImageDataGenerator:
 
     def trainAndGtBatchGenerator(
             self, train_directory, ground_truth_directory, batch_size,
-            number_of_random_patches_per_image=0, patch_size=None,
+            number_of_patches_per_image=0, patch_size=None,
             normalize=False):
         """
         Take random images to batch and return (train, ground_truth) generator
@@ -124,11 +124,11 @@ class ImageDataGenerator:
             Path to the ground truth data
         batch_size : int
             Number of samples in a batch
-        number_of_random_patches_per_image : int
-            If > 0 and patch_size defined, crop patches from images, must be
-            less than batch_size
+        number_of_patches_per_image : int
+            If > 0 and patch_size defined, crop random patches from images,
+            must be less than batch_size
         patch_size : int of None
-            If defined and number_of_random_patches_per_image > 0, crop patches
+            If defined and number_of_patches_per_image > 0, crop patches
             from images
         normalize : bool
             If true, normalize train and ground truth arrays to range [-1, 1]
@@ -141,11 +141,11 @@ class ImageDataGenerator:
         self.__train_directory = train_directory
         self.__gt_directory = ground_truth_directory
         self.__number_of_images_per_batch = batch_size
-        self.__number_of_patches_per_image = number_of_random_patches_per_image
+        self.__number_of_patches_per_image = number_of_patches_per_image
         self.__patch_size = patch_size
 
         # Take either images in batch or patches in batch
-        if number_of_random_patches_per_image > 0 and patch_size is not None:
+        if number_of_patches_per_image > 0 and patch_size is not None:
             self.__number_of_images_per_batch = math.ceil(
                 batch_size / self.__number_of_patches_per_image)
         batch_generator = self.batchGeneratorAndPaths(
@@ -163,6 +163,23 @@ class ImageDataGenerator:
                 train_batch = self.normalizeArray(train_batch)
                 gt_batch = self.normalizeArray(gt_batch)
             yield train_batch, gt_batch
+
+    def numberOfBatchesPerEpoch(
+            self, train_directory, batch_size,
+            number_of_patches_per_image=0):
+        number_of_images_per_batch = batch_size
+        if number_of_patches_per_image > 0:
+            number_of_images_per_batch = math.ceil(
+                batch_size / number_of_patches_per_image)
+
+        # Define generator same way as the training batch generator
+        datagen = kerasImageGenerator().flow_from_directory(
+            train_directory, target_size=(256, 256), class_mode=None,
+            shuffle=True, batch_size=number_of_images_per_batch)
+        batches_per_epoch = (
+            datagen.samples // datagen.batch_size +
+            (datagen.samples % datagen.batch_size > 0))
+        return batches_per_epoch
 
     def normalizeArray(self, data_array, max_value=255):
         return (data_array / max_value - 0.5) * 2
