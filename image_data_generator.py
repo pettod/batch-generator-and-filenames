@@ -11,7 +11,7 @@ class ImageDataGenerator:
     def __init__(self):
         self.__train_directory = ""
         self.__gt_directory = ""
-        self.__batch_size = 0
+        self.__number_of_images_per_batch = 0
         self.__number_of_patches_per_image = 0
         self.__patch_size = None
 
@@ -67,8 +67,6 @@ class ImageDataGenerator:
         Yield tuple of numpy array of batch images and list of batch image file
         name paths
         """
-        self.__batch_size = batch_size
-
         # Define image size to be original image size if not given resize
         # dimensions
         if image_size is None:
@@ -80,7 +78,7 @@ class ImageDataGenerator:
         # Define generator
         datagen = kerasImageGenerator().flow_from_directory(
             data_directory, target_size=image_size, class_mode=None,
-            shuffle=True, batch_size=self.__batch_size)
+            shuffle=True, batch_size=batch_size)
         batches_per_epoch = (
             datagen.samples // datagen.batch_size +
             (datagen.samples % datagen.batch_size > 0))
@@ -142,17 +140,16 @@ class ImageDataGenerator:
         # Set member variables
         self.__train_directory = train_directory
         self.__gt_directory = ground_truth_directory
-        self.__batch_size = batch_size
+        self.__number_of_images_per_batch = batch_size
         self.__number_of_patches_per_image = number_of_random_patches_per_image
         self.__patch_size = patch_size
 
         # Take either images in batch or patches in batch
-        number_of_taken_images = self.__batch_size
         if number_of_random_patches_per_image > 0 and patch_size is not None:
-            number_of_taken_images = math.ceil(
-                self.__batch_size / self.__number_of_patches_per_image)
+            self.__number_of_images_per_batch = math.ceil(
+                batch_size / self.__number_of_patches_per_image)
         batch_generator = self.batchGeneratorAndPaths(
-            self.__train_directory, number_of_taken_images)
+            self.__train_directory, self.__number_of_images_per_batch)
 
         # Take respective ground truth images
         while True:
