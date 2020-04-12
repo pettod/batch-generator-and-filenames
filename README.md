@@ -1,10 +1,12 @@
-# Keras image batch generator
+# Keras Image Batch Generator
 
 ## Introduction
 
 Keras image batch generator to work with image to image models. The generator returns batches of train and ground truth image pairs.
 
-## Installation and data set structure
+## Installation and Data set Structure
+
+The generator has been tested with Tensorflow versions 1.9.0 and 2.1.0 with Python 3.6. To use the generator only Tensorflow is needed to be installed. To test the generator with given test script, install requirements below.
 
 ```bash
 pip install -r requirements.txt
@@ -43,7 +45,7 @@ data_folder/
         image_m_n.png
 ```
 
-## Run batch visualization
+## Run Batch Visualization
 
 1. Add data to the folders as described above.
 
