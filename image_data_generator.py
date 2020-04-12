@@ -1,4 +1,5 @@
-from keras.preprocessing.image import ImageDataGenerator as kerasImageGenerator
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator as kerasImageGenerator
 import math
 import numpy as np
 import os
@@ -99,7 +100,12 @@ class ImageDataGenerator:
                     batch_index = max(0, datagen.samples - datagen.batch_size)
             index_array = datagen.index_array[
                 batch_index:batch_index + datagen.batch_size].tolist()
-            batch_image_paths = [datagen.filepaths[idx] for idx in index_array]
+            if tf.__version__[0] == '1':
+                batch_image_paths = [
+                    datagen.filenames[idx] for idx in index_array]
+            elif tf.__version__[0] == '2':
+                batch_image_paths = [
+                    datagen.filepaths[idx] for idx in index_array]
 
             yield batch_images, batch_image_paths
 
@@ -140,6 +146,7 @@ class ImageDataGenerator:
         self.__number_of_patches_per_image = number_of_random_patches_per_image
         self.__patch_size = patch_size
 
+        # Take either images in batch or patches in batch
         number_of_taken_images = self.__batch_size
         if number_of_random_patches_per_image > 0 and patch_size is not None:
             number_of_taken_images = math.ceil(
@@ -163,7 +170,7 @@ class ImageDataGenerator:
     def normalizeArray(self, data_array, max_value=255):
         return (data_array / max_value - 0.5) * 2
 
-    def denormalizeArray(self, data_array, max_value=255):
+    def unnormalizeArray(self, data_array, max_value=255):
         data_array = (data_array / 2 + 0.5) * max_value
         data_array[data_array < 0.0] = 0.0
         data_array[data_array > max_value] = max_value
