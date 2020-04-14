@@ -83,8 +83,8 @@ class ImageDataGenerator:
             datagen.samples // datagen.batch_size +
             (datagen.samples % datagen.batch_size > 0))
 
-        # Loop one epoch
-        for i in range(batches_per_epoch):
+        # Loop infinite epochs
+        while True:
             batch_images = next(datagen)
 
             # Get batch image file paths
