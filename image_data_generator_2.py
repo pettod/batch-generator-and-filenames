@@ -82,7 +82,7 @@ class ImageDataGenerator:
         number_of_dataset_images = 0
         for root, dirs, files in os.walk(data_directory, topdown=False):
             directory = root.split('/')[-1]
-            for file_name in files:
+            for file_name in sorted(files):
                 self.__image_names.append(os.path.join(directory, file_name))
             number_of_dataset_images += len(files)
 
@@ -97,7 +97,7 @@ class ImageDataGenerator:
             # Define indices
             if len(self.__available_indices) == 0:
                 self.__available_indices = list(
-                    np.arange(number_of_dataset_images))
+                    np.arange(0, number_of_dataset_images, burst_size))
             if batch_size < len(self.__available_indices):
                 if shuffle:
                     random_indices_from_list = random.sample(
@@ -122,7 +122,16 @@ class ImageDataGenerator:
             for i in self.__latest_used_indices:
                 image_name = os.path.join(
                     data_directory, self.__image_names[i])
-                images.append(np.array(Image.open(image_name)))
+                if burst_size == 1:
+                    images.append(np.array(Image.open(image_name)))
+                else:
+                    burst_images = []
+                    for j in range(burst_size):
+                        burst_image_name = os.path.join(
+                            data_directory, self.__image_names[i+j])
+                        burst_images.append(np.array(Image.open(
+                            burst_image_name)))
+                    images.append(burst_images)
                 image_names.append(image_name)
             yield np.array(images), image_names
 

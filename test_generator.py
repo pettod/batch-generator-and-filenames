@@ -8,6 +8,13 @@ from image_data_generator import ImageDataGenerator
 
 
 def hconcatArray(data_array, resize_factor=1):
+    data_array = data_array.astype(np.float32)
+    if len(data_array.shape) == 5:
+        bursts = []
+        for i in range(data_array.shape[0]):
+            burst_concatenated = cv2.vconcat(list(data_array[i]))
+            bursts.append(burst_concatenated)
+        data_array = np.array(bursts)
     image_concatenated = cv2.cvtColor(
         cv2.hconcat(list(data_array)) / 255, cv2.COLOR_RGB2BGR)
     new_shape = tuple(list(np.array(list(
