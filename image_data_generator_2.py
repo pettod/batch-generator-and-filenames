@@ -42,8 +42,13 @@ class ImageDataGenerator:
                 x_end = x_start + self.__patch_size
                 y_start = random.randint(0, max_y_coordinate)
                 y_end = y_start + self.__patch_size
-                train_patches.append(
-                    train_batch[i, :, y_start:y_end, x_start:x_end])
+                if len(train_batch.shape) == 4:
+                    train_sample_patches = train_batch[
+                        i, y_start:y_end, x_start:x_end]
+                else:
+                    train_sample_patches = train_batch[
+                        i, :, y_start:y_end, x_start:x_end]
+                train_patches.append(train_sample_patches)
                 gt_patches.append(gt_batch[i, y_start:y_end, x_start:x_end])
 
         return np.array(train_patches), np.array(gt_patches)
