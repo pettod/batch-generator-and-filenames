@@ -55,7 +55,8 @@ def plotBatchImages(
 
 def plotTrainAndGtBatches(
         train_data_path, gt_data_path, batch_size, patches_per_image,
-        patch_size, burst_size=1, max_number_of_batch_iterations=4):
+        patch_size, burst_size=1, max_number_of_batch_iterations=4,
+        resize_factor=4):
     # Load data
     image_generator = ImageDataGenerator()
     data_generator = image_generator.trainAndGtBatchGenerator(
@@ -82,7 +83,8 @@ def plotTrainAndGtBatches(
             concat_train = hconcatArray(train_batch, 2)
             concat_gt = hconcatArray(gt_batch, 2)
             concat_image = cv2.vconcat([concat_train, concat_gt])
-            new_shape = tuple(list(np.array(list(concat_image.shape[:2])) // 4)[::-1])
+            new_shape = tuple(list(np.array(list(
+                concat_image.shape[:2])) // resize_factor)[::-1])
             concat_image = cv2.resize(concat_image, new_shape)
             cv2.imshow(str(i+1), concat_image)
             cv2.waitKey(0)
@@ -117,7 +119,7 @@ def main():
         plotTrainAndGtBatches(
             train_data_path, ground_truth_data_path, batch_size,
             patches_per_image, patch_size, burst_size=burst_size,
-            max_number_of_batch_iterations=20)
+            max_number_of_batch_iterations=20, resize_factor=1)
     else:
         print("No ground truth data path given as argument")
 

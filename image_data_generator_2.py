@@ -30,8 +30,8 @@ class ImageDataGenerator:
 
     def __pickRandomTrainGtPatches(self, train_batch, gt_batch):
         # Define max coordinates for image cropping
-        max_x_coordinate = train_batch.shape[2] - self.__patch_size
-        max_y_coordinate = train_batch.shape[1] - self.__patch_size
+        max_x_coordinate = train_batch.shape[-2] - self.__patch_size
+        max_y_coordinate = train_batch.shape[-3] - self.__patch_size
 
         # Take random patches from images
         train_patches = []
@@ -43,7 +43,7 @@ class ImageDataGenerator:
                 y_start = random.randint(0, max_y_coordinate)
                 y_end = y_start + self.__patch_size
                 train_patches.append(
-                    train_batch[i, y_start:y_end, x_start:x_end])
+                    train_batch[i, :, y_start:y_end, x_start:x_end])
                 gt_patches.append(gt_batch[i, y_start:y_end, x_start:x_end])
 
         return np.array(train_patches), np.array(gt_patches)
