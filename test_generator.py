@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import sys
 
-from image_data_generator import ImageDataGenerator
+from image_data_generator_2 import ImageDataGenerator
 
 
 def hconcatArray(data_array, resize_factor=1):
@@ -22,13 +22,14 @@ def hconcatArray(data_array, resize_factor=1):
     return cv2.resize(image_concatenated, new_shape)
 
 
-def plotBatchImages(data_path, batch_size, max_number_of_batch_iterations=4):
+def plotBatchImages(
+        data_path, batch_size, burst_size=1, max_number_of_batch_iterations=4):
     # Load data
     image_generator = ImageDataGenerator()
     data_generator = image_generator.batchGeneratorAndPaths(
-        data_path, batch_size)
+        data_path, batch_size, burst_size=burst_size)
     number_of_batches_per_epoch = image_generator.numberOfBatchesPerEpoch(
-        data_path, batch_size)
+        data_path, batch_size, burst_size=burst_size)
 
     # Loop batches
     total_number_of_batches = 0
@@ -54,14 +55,14 @@ def plotBatchImages(data_path, batch_size, max_number_of_batch_iterations=4):
 
 def plotTrainAndGtBatches(
         train_data_path, gt_data_path, batch_size, patches_per_image,
-        patch_size, max_number_of_batch_iterations=4):
+        patch_size, burst_size=1, max_number_of_batch_iterations=4):
     # Load data
     image_generator = ImageDataGenerator()
     data_generator = image_generator.trainAndGtBatchGenerator(
         train_data_path, gt_data_path, batch_size, patches_per_image,
-        patch_size)
+        patch_size, burst_size=burst_size)
     number_of_batches_per_epoch = image_generator.numberOfBatchesPerEpoch(
-        train_data_path, batch_size, patches_per_image)
+        train_data_path, batch_size, patches_per_image, burst_size=burst_size)
 
     # Loop batches
     total_number_of_batches = 0
@@ -81,6 +82,8 @@ def plotTrainAndGtBatches(
             concat_train = hconcatArray(train_batch, 2)
             concat_gt = hconcatArray(gt_batch, 2)
             concat_image = cv2.vconcat([concat_train, concat_gt])
+            new_shape = tuple(list(np.array(list(concat_image.shape[:2])) // 4)[::-1])
+            concat_image = cv2.resize(concat_image, new_shape)
             cv2.imshow(str(i+1), concat_image)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
@@ -98,20 +101,23 @@ def main():
     batch_size = 8
     patch_size = 256
     patches_per_image = 2
+    burst_size = 5
 
     # Plot batches and print batch file names on one dataset
-    plotBatchImages(train_data_path, batch_size)
+    plotBatchImages(train_data_path, batch_size, burst_size)
 
     if len(sys.argv) == 3:
         # Plot train and ground truth image pairs
         ground_truth_data_path = sys.argv[2]
         plotTrainAndGtBatches(
-            train_data_path, ground_truth_data_path, batch_size, 0, None)
+            train_data_path, ground_truth_data_path, batch_size, 0, None,
+            burst_size=burst_size)
 
         # Plot train and ground truth patch pairs
         plotTrainAndGtBatches(
             train_data_path, ground_truth_data_path, batch_size,
-            patches_per_image, patch_size, 20)
+            patches_per_image, patch_size, burst_size=burst_size,
+            max_number_of_batch_iterations=20)
     else:
         print("No ground truth data path given as argument")
 

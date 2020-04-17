@@ -17,9 +17,10 @@ class ImageDataGenerator:
         self.__burst_size = 1
         self.__image_names = []
 
-    def __loadCorrespondingGtImages(self, train_batch_paths):
+    def __loadCorrespondingGtImages(self, reference_frame=0):
         gt_batch = []
-        for train_image_path in train_batch_paths:
+        for i in self.__latest_used_indices:
+            train_image_path = self.__image_names[i+reference_frame]
             ground_truth_image_path = "{}{}".format(
                 self.__gt_directory,
                 train_image_path.split(self.__train_directory)[-1])
@@ -138,7 +139,7 @@ class ImageDataGenerator:
     def trainAndGtBatchGenerator(
             self, train_directory, ground_truth_directory, batch_size,
             number_of_patches_per_image=0, patch_size=None,
-            normalize=False):
+            normalize=False, burst_size=1, reference_frame=0):
         """
         Take random images to batch and return (train, ground_truth) generator
         pair. If defined, take only patches from images. Train and ground truth
@@ -177,12 +178,13 @@ class ImageDataGenerator:
             self.__number_of_images_per_batch = math.ceil(
                 batch_size / self.__number_of_patches_per_image)
         batch_generator = self.batchGeneratorAndPaths(
-            self.__train_directory, self.__number_of_images_per_batch)
+            self.__train_directory, self.__number_of_images_per_batch,
+            burst_size)
 
         # Take respective ground truth images
         while True:
             train_batch, train_image_paths = next(batch_generator)
-            gt_batch = self.__loadCorrespondingGtImages(train_image_paths)
+            gt_batch = self.__loadCorrespondingGtImages(reference_frame)
             if self.__patch_size is not None and \
                     self.__number_of_patches_per_image > 0:
                 train_batch, gt_batch = self.__pickRandomTrainGtPatches(
