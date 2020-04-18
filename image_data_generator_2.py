@@ -117,7 +117,7 @@ class ImageDataGenerator:
                         :batch_size].copy()
             else:
                 self.__latest_used_indices = self.__available_indices.copy()
-            
+
             # Remove indices from availabe indices
             for i in reversed(sorted(self.__latest_used_indices)):
                 self.__available_indices.remove(i)
