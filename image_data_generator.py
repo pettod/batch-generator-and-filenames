@@ -182,7 +182,7 @@ class ImageDataGenerator:
         return batches_per_epoch
 
     def normalizeArray(self, data_array, max_value=255):
-        return (data_array / max_value - 0.5) * 2
+        return ((data_array / max_value - 0.5) * 2).astype(np.float32)
 
     def unnormalizeArray(self, data_array, max_value=255):
         data_array = (data_array / 2 + 0.5) * max_value
